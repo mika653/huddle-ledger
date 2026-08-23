@@ -19,6 +19,8 @@ npm run dev
 
 Without any database configured, data is saved to a local `.local-data/store.json` file — good enough for development, not for production (it won't survive a redeploy).
 
+**Don't run `vercel env pull`** for routine local dev — it downloads the *real* production Redis credentials into `.env.local`, and once those are present `npm run dev` starts writing to the live production database instead of the local file fallback. If you ever do need real data locally (debugging a production-only issue), delete `.env.local` again as soon as you're done.
+
 ## Deploying
 
 1. Push this repo to GitHub (already done if you're reading this on GitHub).
