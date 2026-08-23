@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Huddle Ledger
 
-## Getting Started
+A collection tracker and decklist manager for [Vibes TCG](https://www.vibes.game) (the Pudgy Penguins trading card game). Track what you own, build decks, see what's missing to complete each list, and spot cards you have spare to trade.
 
-First, run the development server:
+## Features
+
+- **Collection** — search the full 547-card pool, set how many copies you own (no cap at 4 — extras beyond a playset show as spare, for trading).
+- **Decks** — create named decklists, add cards, see a readiness % against your collection.
+- **Per-deck detail** — legality check (52-count, 4-copy cap), a Fish-cost curve, a rough pudge-coverage check, and a Have/Need breakdown.
+- **Buy list + cross-deck shopping list** — deduplicates what's missing across every tracked deck, with manual per-card pricing.
+- **No accounts, honor-system pages** — pick a name, get a page at `/p/your-name`. Anyone with the link can view (and, since there's no login, edit) — meant for a friend group, not the public internet.
+
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without any database configured, data is saved to a local `.local-data/store.json` file — good enough for development, not for production (it won't survive a redeploy).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Deploying
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Push this repo to GitHub (already done if you're reading this on GitHub).
+2. Import it into [Vercel](https://vercel.com/new).
+3. Add a Redis database from the Vercel Marketplace (Storage tab → Redis, e.g. Upstash) and connect it to this project — this sets the `KV_REST_API_URL` / `KV_REST_API_TOKEN` env vars automatically.
+4. Deploy. Without step 3, the app still runs but nothing will persist between requests in production (serverless functions don't share a local filesystem).
 
-## Learn More
+## Card data
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The card database (`src/data/cards.json`) is a lean snapshot (id, name, color, type, rarity, vibe, cost, pudge) of the public card pool — no rules text, kept small on purpose.

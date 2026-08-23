@@ -1,69 +1,65 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toSlug } from "@/lib/slug";
+
+export default function Landing() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [people, setPeople] = useState(null);
+
+  useEffect(() => {
+    const remembered = localStorage.getItem("huddle-ledger:me");
+    if (remembered) setName(remembered);
+    fetch("/api/directory")
+      .then((r) => r.json())
+      .then((d) => setPeople(d.people || []))
+      .catch(() => setPeople([]));
+  }, []);
+
+  function go() {
+    const slug = toSlug(name);
+    if (!slug) return;
+    localStorage.setItem("huddle-ledger:me", name.trim());
+    router.push(`/p/${slug}`);
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="landing">
+      <div className="landing-card">
+        <div className="landing-emoji">🐧</div>
+        <h1>Huddle Ledger</h1>
+        <p>Track your Vibes TCG collection, build decks, and see what your friends have spare.</p>
+        <input
+          type="text"
+          placeholder="What's your name?"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && go()}
+          autoFocus
         />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.js</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        <button className="btn btn-accent" style={{ width: "100%", justifyContent: "center" }} onClick={go}>
+          {people && people.length ? "Open my ledger" : "Get started"}
+        </button>
+
+        {people && people.length > 0 && (
+          <div className="directory-list">
+            <h3 style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--ink-faint)", marginBottom: 10 }}>
+              Already tracking
+            </h3>
+            {people.map((p) => (
+              <a key={p.slug} className="directory-item" href={`/p/${p.slug}`}>
+                <span>{p.displayName}</span>
+                <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <span className="chip chip-neutral">{p.collectionCount} cards</span>
+                  {p.surplusCount > 0 && <span className="chip chip-good">{p.surplusCount} spare</span>}
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
