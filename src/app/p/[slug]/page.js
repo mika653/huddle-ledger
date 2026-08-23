@@ -58,7 +58,7 @@ export default function CollectionPage({ params }) {
         <input type="text" placeholder="Search a card name…" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
       </div>
       <div style={{ marginTop: 16 }} className="table-wrap">
-        <table>
+        <table className="responsive-table">
           <thead>
             <tr>
               <th>Card</th>
@@ -93,7 +93,7 @@ export default function CollectionPage({ params }) {
                 const total = totalOwned(entry);
                 return (
                   <tr key={c.id}>
-                    <td>
+                    <td className="row-title">
                       <div className="card-name-cell">
                         <CardThumb card={c} />
                         <div>
@@ -102,13 +102,13 @@ export default function CollectionPage({ params }) {
                         </div>
                       </div>
                     </td>
-                    <td className="num">{costLabel(c.c)}</td>
+                    <td className="num row-stat" data-label="Cost">{costLabel(c.c)}</td>
                     {FINISHES.map((f) => (
-                      <td className="num" key={f.key}>
+                      <td className="num row-stat" data-label={f.label} key={f.key}>
                         <FinishStepper value={entry[f.key]} onChange={(n) => setFinish(c.id, f.key, n)} />
                       </td>
                     ))}
-                    <td className="num">
+                    <td className="num row-stat" data-label="Total">
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
                         {total > 4 && (
                           <span className="chip chip-good" title="More than a playset, across all finishes — available to trade or sell">

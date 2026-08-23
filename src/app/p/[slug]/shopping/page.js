@@ -50,7 +50,7 @@ export default function ShoppingPage({ params }) {
       ) : (
         <>
           <div className="table-wrap">
-            <table>
+            <table className="responsive-table">
               <thead><tr><th>Card</th><th className="num">Need</th><th className="num">Price ea.</th><th className="num">Subtotal</th></tr></thead>
               <tbody>
                 {ids.map((id) => {
@@ -58,7 +58,7 @@ export default function ShoppingPage({ params }) {
                   const pr = state.prices[id] || 0;
                   return (
                     <tr key={id}>
-                      <td>
+                      <td className="row-title">
                         <div className="card-name-cell">
                           <CardThumb card={e.card} />
                           <div>
@@ -67,12 +67,12 @@ export default function ShoppingPage({ params }) {
                           </div>
                         </div>
                       </td>
-                      <td className="num" style={{ fontWeight: 700 }}>{e.need}</td>
-                      <td className="num">
+                      <td className="num row-stat" data-label="Need" style={{ fontWeight: 700 }}>{e.need}</td>
+                      <td className="num row-stat" data-label="Price ea.">
                         <input className="price-input" type="number" min="0" step="1" defaultValue={pr || ""} placeholder="0"
                           onBlur={(ev) => setPrice(id, ev.target.value)} />
                       </td>
-                      <td className="num">{pr ? fmtMoney(pr * e.need) : "—"}</td>
+                      <td className="num row-stat" data-label="Subtotal">{pr ? fmtMoney(pr * e.need) : "—"}</td>
                     </tr>
                   );
                 })}

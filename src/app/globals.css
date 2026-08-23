@@ -233,31 +233,56 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     flex-direction: row; align-items: center; padding: 12px 14px; gap: 8px;
   }
   .brand { padding: 0; flex: 0 0 auto; }
-  .brand-name { font-size: 17px; }
+  .brand-name { font-size: 18px; }
   .brand-sub { display: none; }
   nav.rail-nav { flex-direction: row; flex: 1 1 auto; overflow-x: auto; gap: 6px; -webkit-overflow-scrolling: touch; }
-  .rail-link { padding: 8px 10px; font-size: 12.5px; white-space: nowrap; }
+  .rail-link { padding: 10px 12px; font-size: 13.5px; white-space: nowrap; }
   .rail-foot { display: none; }
 
   #main { padding: 16px; }
   .page-head { margin-bottom: 16px; }
-  .page-head h1 { font-size: 23px; }
-  .page-head p { font-size: 12.5px; }
-  .btn { padding: 9px 13px; font-size: 13px; }
+  .page-head h1 { font-size: 24px; }
+  .page-head p { font-size: 13.5px; }
+  .btn { padding: 11px 16px; font-size: 14px; }
 
   .panel { padding: 16px; border-radius: 14px; }
-  table th, table td { padding: 8px 10px; font-size: 12.5px; }
-  .card-meta { display: none; }
-  .thumb { width: 26px; height: 36px; margin-right: 8px; }
 
   .deck-list { grid-template-columns: 1fr; }
   .search-box { max-width: 100%; }
+  .search-box input { font-size: 16px; } /* prevents iOS auto-zoom on focus */
 
   .toast-stack { bottom: 14px; }
-  .toast { font-size: 12.5px; padding: 10px 16px; }
-}
 
-@media (max-width: 420px) {
-  .stepper button { width: 25px; height: 25px; }
-  .stepper .count { width: 22px; }
+  /* ---- Tables become stacked cards, not squeezed columns ---- */
+  .table-wrap { border-radius: 14px; }
+  table.responsive-table thead { display: none; }
+  table.responsive-table, table.responsive-table tbody, table.responsive-table tr, table.responsive-table td {
+    display: block; width: 100%;
+  }
+  table.responsive-table tr {
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+  }
+  table.responsive-table tr:last-child { border-bottom: none; }
+  table.responsive-table td {
+    border-bottom: none; padding: 0; text-align: left;
+  }
+  table.responsive-table td.row-title { padding-bottom: 10px; }
+  table.responsive-table td.row-stat {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 0; border-top: 1px dashed var(--line); font-size: 14px;
+  }
+  table.responsive-table td.row-stat:before {
+    content: attr(data-label); color: var(--ink-faint); font-weight: 700;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  table.responsive-table td.row-stat.no-label:before { content: none; }
+  table.responsive-table td.row-stat > * { margin-left: auto; }
+
+  .thumb { width: 40px; height: 56px; }
+  .card-name { font-size: 15px; }
+  .stepper button { width: 34px; height: 34px; font-size: 18px; }
+  .stepper .count { width: 30px; font-size: 15px; }
+  .stepper-sm button { width: 30px; height: 30px; font-size: 15px; }
+  .stepper-sm .count { width: 24px; font-size: 13.5px; }
+  .price-input { width: 78px; padding: 8px 9px; font-size: 14px; }
 }

@@ -144,26 +144,26 @@ export default function DeckDetailPage({ params }) {
               <div className="table-wrap"><div className="empty-state"><h3>Nothing to buy</h3><p>You own enough of everything in this deck.</p></div></div>
             ) : (
               <div className="table-wrap">
-                <table>
+                <table className="responsive-table">
                   <thead>
                     <tr><th>Card</th><th className="num">Own / need</th><th className="num">Short</th><th className="num">Price ea.</th><th className="num">Subtotal</th></tr>
                   </thead>
                   <tbody>
                     {[...a.needCards].sort((x, y) => y.needN - x.needN).map((row) => (
                       <tr key={row.id}>
-                        <td>
+                        <td className="row-title">
                           <div className="card-name-cell">
                             <CardThumb card={row.card} />
                             <span className="card-name">{row.card.n}</span>
                           </div>
                         </td>
-                        <td className="num">{row.owned} / {row.qty}</td>
-                        <td className="num" style={{ color: "var(--bad)", fontWeight: 700 }}>{row.needN}</td>
-                        <td className="num">
+                        <td className="num row-stat" data-label="Own / need">{row.owned} / {row.qty}</td>
+                        <td className="num row-stat" data-label="Short" style={{ color: "var(--bad)", fontWeight: 700 }}>{row.needN}</td>
+                        <td className="num row-stat" data-label="Price ea.">
                           <input className="price-input" type="number" min="0" step="1" defaultValue={row.price || ""} placeholder="0"
                             onBlur={(e) => setPrice(row.id, e.target.value)} />
                         </td>
-                        <td className="num">{row.price ? fmtMoney(row.price * row.needN) : "—"}</td>
+                        <td className="num row-stat" data-label="Subtotal">{row.price ? fmtMoney(row.price * row.needN) : "—"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -194,7 +194,7 @@ export default function DeckDetailPage({ params }) {
                 </div>
               )}
               <div style={{ marginTop: 16 }} className="table-wrap">
-                <table>
+                <table className="responsive-table">
                   <thead><tr><th>Card</th><th className="num">Cost</th><th className="num">Own</th><th className="num">In deck</th></tr></thead>
                   <tbody>
                     {ids.length === 0 ? (
@@ -207,15 +207,15 @@ export default function DeckDetailPage({ params }) {
                         const short = qty > owned;
                         return (
                           <tr key={id}>
-                            <td>
+                            <td className="row-title">
                               <div className="card-name-cell">
                                 <CardThumb card={c} />
                                 <span className="card-name">{c.n}</span>
                               </div>
                             </td>
-                            <td className="num">{costLabel(c.c)}</td>
-                            <td className="num">{owned}</td>
-                            <td className="num">
+                            <td className="num row-stat" data-label="Cost">{costLabel(c.c)}</td>
+                            <td className="num row-stat" data-label="Own">{owned}</td>
+                            <td className="num row-stat" data-label="In deck">
                               <div className="stepper">
                                 <button onClick={() => setQty(id, qty - 1)}>−</button>
                                 <span className="count" style={short ? { color: "var(--bad)" } : undefined}>{qty}</span>
