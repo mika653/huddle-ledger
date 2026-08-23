@@ -4,13 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const EMPTY = { collection: {}, decks: [], prices: {}, displayName: "" };
 
-export function usePersonState(slug) {
+// onSaveResult(ok: boolean) fires once a debounced save actually completes —
+// this is the real "did it save" signal, not just "did you click something".
+export function usePersonState(slug, onSaveResult) {
   const [state, setState] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("saved"); // saved | pending | saving | error
   const saveTimer = useRef(null);
   const latest = useRef(state);
   latest.current = state;
+  const onSaveResultRef = useRef(onSaveResult);
+  onSaveResultRef.current = onSaveResult;
 
   useEffect(() => {
     let cancelled = false;
@@ -36,8 +40,10 @@ export function usePersonState(slug) {
       });
       if (!res.ok) throw new Error("save failed");
       setSaveStatus("saved");
+      onSaveResultRef.current?.(true);
     } catch {
       setSaveStatus("error");
+      onSaveResultRef.current?.(false);
     }
   }, [slug]);
 

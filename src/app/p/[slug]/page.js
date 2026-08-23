@@ -2,12 +2,18 @@
 
 import { use, useMemo, useState } from "react";
 import PersonShell from "@/components/PersonShell";
+import CardThumb from "@/components/CardThumb";
+import ToastStack from "@/components/ToastStack";
 import { usePersonState } from "@/lib/usePersonState";
-import { CARDS, COLOR_HEX, costLabel, searchCards } from "@/lib/cards";
+import { useToasts } from "@/lib/useToasts";
+import { CARDS, costLabel, searchCards } from "@/lib/cards";
 
 export default function CollectionPage({ params }) {
   const { slug } = use(params);
-  const { state, update, loading, saveStatus } = usePersonState(slug);
+  const { toasts, showToast } = useToasts();
+  const { state, update, loading, saveStatus } = usePersonState(slug, (ok) => {
+    showToast(ok ? "✓ Saved" : "Save failed — check your connection", ok ? "good" : "bad");
+  });
   const [query, setQuery] = useState("");
 
   const rows = useMemo(() => {
@@ -74,7 +80,7 @@ export default function CollectionPage({ params }) {
                   <tr key={c.id}>
                     <td>
                       <div className="card-name-cell">
-                        <span className="swatch" style={{ background: COLOR_HEX[c.co] || "var(--c-colorless)" }} />
+                        <CardThumb card={c} />
                         <div>
                           <div className="card-name">{c.n}</div>
                           <div className="card-meta">{c.co} · {c.r}</div>
@@ -106,6 +112,7 @@ export default function CollectionPage({ params }) {
         </table>
       </div>
       <p style={{ marginTop: 10, color: "var(--ink-faint)", fontSize: 12 }}>{uniqueOwned} unique cards logged so far.</p>
+      <ToastStack toasts={toasts} />
     </PersonShell>
   );
 }

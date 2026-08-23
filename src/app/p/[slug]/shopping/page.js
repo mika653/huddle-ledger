@@ -2,13 +2,18 @@
 
 import { use, useMemo } from "react";
 import PersonShell from "@/components/PersonShell";
+import CardThumb from "@/components/CardThumb";
+import ToastStack from "@/components/ToastStack";
 import { usePersonState } from "@/lib/usePersonState";
+import { useToasts } from "@/lib/useToasts";
 import { shoppingListAcrossDecks, fmtMoney } from "@/lib/deckAnalysis";
-import { COLOR_HEX } from "@/lib/cards";
 
 export default function ShoppingPage({ params }) {
   const { slug } = use(params);
-  const { state, update, saveStatus } = usePersonState(slug);
+  const { toasts, showToast } = useToasts();
+  const { state, update, saveStatus } = usePersonState(slug, (ok) => {
+    showToast(ok ? "✓ Saved" : "Save failed — check your connection", ok ? "good" : "bad");
+  });
 
   const { agg, total } = useMemo(
     () => shoppingListAcrossDecks(state.decks, state.collection, state.prices),
@@ -55,7 +60,7 @@ export default function ShoppingPage({ params }) {
                     <tr key={id}>
                       <td>
                         <div className="card-name-cell">
-                          <span className="swatch" style={{ background: COLOR_HEX[e.card.co] || "var(--c-colorless)" }} />
+                          <CardThumb card={e.card} />
                           <div>
                             <div className="card-name">{e.card.n}</div>
                             <div className="card-meta">needed for {e.decks.join(", ")}</div>
@@ -83,6 +88,7 @@ export default function ShoppingPage({ params }) {
           </div>
         </>
       )}
+      <ToastStack toasts={toasts} />
     </PersonShell>
   );
 }

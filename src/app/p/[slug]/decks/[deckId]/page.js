@@ -3,9 +3,12 @@
 import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import PersonShell from "@/components/PersonShell";
+import CardThumb from "@/components/CardThumb";
+import ToastStack from "@/components/ToastStack";
 import { usePersonState } from "@/lib/usePersonState";
+import { useToasts } from "@/lib/useToasts";
 import { deckAnalysis, deckCardIds, ownedCount, fmtMoney } from "@/lib/deckAnalysis";
-import { CARDS_BY_ID, COLOR_HEX, costLabel, searchCards } from "@/lib/cards";
+import { CARDS_BY_ID, costLabel, searchCards } from "@/lib/cards";
 
 function CurveChart({ curve }) {
   const buckets = ["0", "1", "2", "3", "4", "5", "6", "7", "8+"];
@@ -32,7 +35,10 @@ function CurveChart({ curve }) {
 export default function DeckDetailPage({ params }) {
   const { slug, deckId } = use(params);
   const router = useRouter();
-  const { state, update, loading, saveStatus } = usePersonState(slug);
+  const { toasts, showToast } = useToasts();
+  const { state, update, loading, saveStatus } = usePersonState(slug, (ok) => {
+    showToast(ok ? "✓ Saved" : "Save failed — check your connection", ok ? "good" : "bad");
+  });
   const [tab, setTab] = useState("cards");
   const [query, setQuery] = useState("");
 
@@ -54,6 +60,12 @@ export default function DeckDetailPage({ params }) {
       else cards[id] = Math.min(4, qty);
       return { ...d, cards };
     });
+  }
+
+  function addCard(c) {
+    const qty = deck.cards[c.id] || 0;
+    setQty(c.id, qty + 1);
+    showToast(`Added ${c.n} to ${deck.name}`, "good");
   }
 
   function rename() {
@@ -141,7 +153,7 @@ export default function DeckDetailPage({ params }) {
                       <tr key={row.id}>
                         <td>
                           <div className="card-name-cell">
-                            <span className="swatch" style={{ background: COLOR_HEX[row.card.co] || "var(--c-colorless)" }} />
+                            <CardThumb card={row.card} />
                             <span className="card-name">{row.card.n}</span>
                           </div>
                         </td>
@@ -170,10 +182,10 @@ export default function DeckDetailPage({ params }) {
                     return (
                       <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", border: "1px solid var(--line)", borderRadius: 8, marginBottom: 6, background: "var(--surface)" }}>
                         <div className="card-name-cell">
-                          <span className="swatch" style={{ background: COLOR_HEX[c.co] || "var(--c-colorless)" }} />
+                          <CardThumb card={c} />
                           <span className="card-name">{c.n}</span>
                         </div>
-                        <button className="btn btn-sm btn-accent" disabled={qty >= 4} onClick={() => setQty(c.id, qty + 1)}>
+                        <button className="btn btn-sm btn-accent" disabled={qty >= 4} onClick={() => addCard(c)}>
                           {qty ? `Add another (${qty}/4)` : "Add"}
                         </button>
                       </div>
@@ -197,7 +209,7 @@ export default function DeckDetailPage({ params }) {
                           <tr key={id}>
                             <td>
                               <div className="card-name-cell">
-                                <span className="swatch" style={{ background: COLOR_HEX[c.co] || "var(--c-colorless)" }} />
+                                <CardThumb card={c} />
                                 <span className="card-name">{c.n}</span>
                               </div>
                             </td>
@@ -261,6 +273,7 @@ export default function DeckDetailPage({ params }) {
           </div>
         </div>
       </div>
+      <ToastStack toasts={toasts} />
     </PersonShell>
   );
 }

@@ -17,6 +17,12 @@ export const COLOR_HEX = {
   Colorless: "var(--c-colorless)",
 };
 
+const ART_BASE = "https://ocg-card-catalog.s3.us-west-2.amazonaws.com/Spoiler_Previews/";
+
+export function artSrc(c) {
+  return `${ART_BASE}${c.id}.png`;
+}
+
 export function costLabel(c) {
   if (!c) return "—";
   if (c.color === "Fish") return `${c.amount}F`;
