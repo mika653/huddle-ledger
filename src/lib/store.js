@@ -70,3 +70,25 @@ export async function kvSMembers(key) {
   const data = await readLocalFile();
   return data[key] || [];
 }
+
+export async function kvSRem(key, member) {
+  if (redis) {
+    await redis.srem(key, member);
+    return;
+  }
+  const data = await readLocalFile();
+  const set = new Set(data[key] || []);
+  set.delete(member);
+  data[key] = Array.from(set);
+  await writeLocalFile(data);
+}
+
+export async function kvDel(key) {
+  if (redis) {
+    await redis.del(key);
+    return;
+  }
+  const data = await readLocalFile();
+  delete data[key];
+  await writeLocalFile(data);
+}

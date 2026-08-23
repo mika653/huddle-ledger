@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { kvGet, kvSet, kvSAdd } from "@/lib/store";
+import { kvGet, kvSet, kvSAdd, kvSRem, kvDel } from "@/lib/store";
 import { isValidSlug } from "@/lib/slug";
 
 const EMPTY_STATE = { collection: {}, decks: [], prices: {}, displayName: "" };
@@ -27,5 +27,15 @@ export async function PUT(request, { params }) {
   };
   await kvSet(`user:${slug}`, state);
   await kvSAdd("directory", slug);
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(request, { params }) {
+  const { slug } = await params;
+  if (!isValidSlug(slug)) {
+    return NextResponse.json({ error: "invalid slug" }, { status: 400 });
+  }
+  await kvDel(`user:${slug}`);
+  await kvSRem("directory", slug);
   return NextResponse.json({ ok: true });
 }
