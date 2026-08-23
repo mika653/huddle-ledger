@@ -1,7 +1,10 @@
 import { CARDS_BY_ID } from "@/lib/cards";
+import { totalOwned } from "@/lib/finishes";
 
+// Deck legality/have-need doesn't care which finish a copy is — a foil
+// counts toward your playset the same as a regular copy.
 export function ownedCount(collection, id) {
-  return collection[id] || 0;
+  return totalOwned(collection[id]);
 }
 
 export function deckTotal(deck) {

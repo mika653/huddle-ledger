@@ -7,6 +7,17 @@ import ToastStack from "@/components/ToastStack";
 import { usePersonState } from "@/lib/usePersonState";
 import { useToasts } from "@/lib/useToasts";
 import { CARDS, costLabel, searchCards } from "@/lib/cards";
+import { FINISHES, normalizeEntry, totalOwned } from "@/lib/finishes";
+
+function FinishStepper({ value, onChange }) {
+  return (
+    <div className="stepper stepper-sm">
+      <button disabled={value <= 0} onClick={() => onChange(value - 1)}>−</button>
+      <span className="count">{value}</span>
+      <button disabled={value >= 99} onClick={() => onChange(value + 1)}>+</button>
+    </div>
+  );
+}
 
 export default function CollectionPage({ params }) {
   const { slug } = use(params);
@@ -18,15 +29,17 @@ export default function CollectionPage({ params }) {
 
   const rows = useMemo(() => {
     if (query.trim()) return searchCards(query, 200);
-    return CARDS.filter((c) => (state.collection[c.id] || 0) > 0);
+    return CARDS.filter((c) => totalOwned(state.collection[c.id]) > 0);
   }, [query, state.collection]);
 
-  function setOwned(id, n) {
+  function setFinish(id, finishKey, n) {
     n = Math.max(0, Math.min(99, n));
     update((prev) => {
+      const entry = normalizeEntry(prev.collection[id]);
+      entry[finishKey] = n;
       const collection = { ...prev.collection };
-      if (n === 0) delete collection[id];
-      else collection[id] = n;
+      if (totalOwned(entry) === 0) delete collection[id];
+      else collection[id] = entry;
       return { ...prev, collection };
     });
   }
@@ -38,7 +51,7 @@ export default function CollectionPage({ params }) {
       <div className="page-head">
         <div>
           <h1>Collection</h1>
-          <p>Search the full {CARDS.length}-card pool and set how many copies you own. Own more than a playset? Keep going — it&apos;ll show as spare.</p>
+          <p>Search the full {CARDS.length}-card pool and log Regular, Foil, and Special Foil counts separately. Own more than a playset in total? It&apos;ll show as spare.</p>
         </div>
       </div>
       <div className="search-box">
@@ -49,16 +62,17 @@ export default function CollectionPage({ params }) {
           <thead>
             <tr>
               <th>Card</th>
-              <th>Type</th>
               <th className="num">Cost</th>
-              <th className="num">Vibe</th>
-              <th className="num">Owned</th>
+              {FINISHES.map((f) => (
+                <th className="num" key={f.key} title={f.label}>{f.short}</th>
+              ))}
+              <th className="num">Total</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={6}>
                   <div className="empty-state">
                     <h3>Loading…</h3>
                   </div>
@@ -66,7 +80,7 @@ export default function CollectionPage({ params }) {
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={6}>
                   <div className="empty-state">
                     <h3>{query ? "No matches" : "Nothing logged yet"}</h3>
                     <p>{query ? "Try a different search term." : "Search above and start setting counts — owned cards will show here."}</p>
@@ -75,7 +89,8 @@ export default function CollectionPage({ params }) {
               </tr>
             ) : (
               rows.map((c) => {
-                const n = state.collection[c.id] || 0;
+                const entry = normalizeEntry(state.collection[c.id]);
+                const total = totalOwned(entry);
                 return (
                   <tr key={c.id}>
                     <td>
@@ -87,21 +102,20 @@ export default function CollectionPage({ params }) {
                         </div>
                       </div>
                     </td>
-                    <td>{c.t}</td>
                     <td className="num">{costLabel(c.c)}</td>
-                    <td className="num">{c.v == null ? "—" : c.v}</td>
+                    {FINISHES.map((f) => (
+                      <td className="num" key={f.key}>
+                        <FinishStepper value={entry[f.key]} onChange={(n) => setFinish(c.id, f.key, n)} />
+                      </td>
+                    ))}
                     <td className="num">
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-                        {n > 4 && (
-                          <span className="chip chip-good" style={{ marginRight: 8 }} title="More than a playset — available to trade or sell">
-                            {n - 4} spare
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                        {total > 4 && (
+                          <span className="chip chip-good" title="More than a playset, across all finishes — available to trade or sell">
+                            {total - 4} spare
                           </span>
                         )}
-                        <div className="stepper">
-                          <button disabled={n <= 0} onClick={() => setOwned(c.id, n - 1)}>−</button>
-                          <span className="count">{n}</span>
-                          <button disabled={n >= 99} onClick={() => setOwned(c.id, n + 1)}>+</button>
-                        </div>
+                        <span style={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{total}</span>
                       </div>
                     </td>
                   </tr>
