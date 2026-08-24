@@ -3,13 +3,16 @@
 import { use, useEffect, useMemo, useState } from "react";
 import PersonShell from "@/components/PersonShell";
 import CardThumb from "@/components/CardThumb";
+import CardZoomModal from "@/components/CardZoomModal";
 import { usePersonState } from "@/lib/usePersonState";
+import { useCardZoom } from "@/lib/useCardZoom";
 import { shoppingListAcrossDecks } from "@/lib/deckAnalysis";
 import { CARDS_BY_ID } from "@/lib/cards";
 
 export default function TradesPage({ params }) {
   const { slug } = use(params);
   const { state, loading, saveStatus, isOwner } = usePersonState(slug);
+  const zoom = useCardZoom();
   const [people, setPeople] = useState(null);
 
   useEffect(() => {
@@ -75,7 +78,9 @@ export default function TradesPage({ params }) {
                 <tr key={row.id}>
                   <td className="row-title">
                     <div className="card-name-cell">
-                      <CardThumb card={row.card} />
+                      <button type="button" className="thumb-btn" aria-label={`Zoom ${row.card.n}`} onClick={() => zoom.open(row.card)}>
+                        <CardThumb card={row.card} />
+                      </button>
                       <div className="card-name">{row.card.n}</div>
                     </div>
                   </td>
@@ -95,6 +100,7 @@ export default function TradesPage({ params }) {
           </table>
         </div>
       )}
+      <CardZoomModal card={zoom.card} onClose={zoom.close} />
     </PersonShell>
   );
 }

@@ -3,9 +3,11 @@
 import { use, useMemo } from "react";
 import PersonShell from "@/components/PersonShell";
 import CardThumb from "@/components/CardThumb";
+import CardZoomModal from "@/components/CardZoomModal";
 import ToastStack from "@/components/ToastStack";
 import { usePersonState } from "@/lib/usePersonState";
 import { useToasts } from "@/lib/useToasts";
+import { useCardZoom } from "@/lib/useCardZoom";
 import { shoppingListAcrossDecks, fmtMoney } from "@/lib/deckAnalysis";
 
 export default function ShoppingPage({ params }) {
@@ -14,6 +16,7 @@ export default function ShoppingPage({ params }) {
   const { state, update, saveStatus, isOwner } = usePersonState(slug, (ok) => {
     showToast(ok ? "✓ Saved" : "Save failed — check your connection", ok ? "good" : "bad");
   });
+  const zoom = useCardZoom();
 
   const { agg, total } = useMemo(
     () => shoppingListAcrossDecks(state.decks, state.collection, state.prices),
@@ -60,7 +63,9 @@ export default function ShoppingPage({ params }) {
                     <tr key={id}>
                       <td className="row-title">
                         <div className="card-name-cell">
-                          <CardThumb card={e.card} />
+                          <button type="button" className="thumb-btn" aria-label={`Zoom ${e.card.n}`} onClick={() => zoom.open(e.card)}>
+                            <CardThumb card={e.card} />
+                          </button>
                           <div>
                             <div className="card-name">{e.card.n}</div>
                             <div className="card-meta">needed for {e.decks.join(", ")}</div>
@@ -90,6 +95,7 @@ export default function ShoppingPage({ params }) {
           </div>
         </>
       )}
+      <CardZoomModal card={zoom.card} onClose={zoom.close} />
       <ToastStack toasts={toasts} dismiss={dismiss} />
     </PersonShell>
   );

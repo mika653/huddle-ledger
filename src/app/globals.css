@@ -159,6 +159,55 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .card-name { font-weight: 700; }
 .card-meta { color: var(--ink-faint); font-size: 11.5px; }
 
+.thumb-btn {
+  display: inline-flex; padding: 0; border: none; background: none; cursor: zoom-in;
+  border-radius: 6px; flex: 0 0 auto;
+}
+.thumb-btn:hover .thumb, .thumb-btn:focus-visible .thumb { box-shadow: 0 0 0 2px var(--accent); }
+
+/* ---- Card zoom modal ---- */
+.card-zoom-modal {
+  background: var(--surface); border-radius: 20px; padding: 20px; width: 100%; max-width: 380px;
+  box-shadow: 0 24px 70px var(--shadow); position: relative; text-align: center;
+}
+.card-zoom-close {
+  position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%;
+  border: none; background: var(--surface-2); color: var(--ink-soft); font-size: 20px; line-height: 1;
+}
+.card-zoom-close:hover { background: var(--accent-soft); color: var(--accent); }
+.card-zoom-img {
+  width: 100%; max-width: 300px; border-radius: 14px; box-shadow: 0 10px 30px var(--shadow);
+}
+.card-zoom-fallback { width: 100%; max-width: 300px; aspect-ratio: 5 / 7; border-radius: 14px; margin: 0 auto; }
+.card-zoom-meta { margin-top: 16px; }
+.card-zoom-meta h3 { text-wrap: balance; }
+.card-zoom-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
+
+/* ---- Gallery view ---- */
+.view-toggle { display: inline-flex; border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; }
+.view-toggle button {
+  padding: 8px 14px; border: none; background: var(--surface); color: var(--ink-soft);
+  font-size: 13px; font-weight: 700;
+}
+.view-toggle button.active { background: var(--accent); color: var(--accent-ink); }
+.card-gallery {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 14px; margin-top: 16px;
+}
+.gallery-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface); cursor: zoom-in;
+  text-align: center; box-shadow: 0 2px 8px var(--shadow);
+}
+.gallery-tile:hover, .gallery-tile:focus-visible { box-shadow: 0 6px 18px var(--shadow); border-color: var(--accent); }
+.gallery-tile .thumb { width: 108px; height: 151px; margin-right: 0; border-radius: 10px; }
+.gallery-tile .card-name { font-size: 12.5px; line-height: 1.25; }
+.gallery-tile .gallery-badges { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.gallery-badge {
+  font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px;
+  background: var(--surface-2); color: var(--ink-soft);
+}
+.gallery-badge.spare { background: var(--good-soft); color: var(--good-ink); }
+
 .stepper { display: inline-flex; align-items: center; gap: 0; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
 .stepper button { width: 28px; height: 28px; border: none; background: var(--surface-2); color: var(--ink); font-size: 16px; line-height: 1; font-weight: 700; }
 .stepper button:hover { background: var(--accent-soft); color: var(--accent); }
@@ -228,8 +277,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .directory-item:hover { border-color: var(--accent); }
 
 .view-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px; font-size: 13.5px; font-weight: 600; }
-
-.read-only-zone { pointer-events: none; }
 
 .rail-nav-backdrop { display: none; }
 
@@ -335,4 +382,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .stepper-sm button { width: 40px; height: 40px; font-size: 16px; }
   .stepper-sm .count { width: 26px; font-size: 14px; }
   .price-input { width: 78px; padding: 10px 9px; }
+
+  .card-gallery { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+  .gallery-tile .thumb { width: 88px; height: 123px; }
+  .card-zoom-modal { padding: 16px; }
+  .card-zoom-img { max-width: 240px; }
 }

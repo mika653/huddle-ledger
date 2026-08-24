@@ -107,9 +107,7 @@ export default function PersonShell({ slug, saveStatus, isOwner = true, children
             <span>👀 You&apos;re viewing <b>{slug}</b>&apos;s collection, read-only — ask them if something&apos;s up for trade. Go to the landing page and enter your own name to start your own ledger.</span>
           </div>
         )}
-        <div className={isOwner ? "" : "read-only-zone"} aria-disabled={!isOwner}>
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );

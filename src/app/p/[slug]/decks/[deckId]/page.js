@@ -4,9 +4,11 @@ import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import PersonShell from "@/components/PersonShell";
 import CardThumb from "@/components/CardThumb";
+import CardZoomModal from "@/components/CardZoomModal";
 import ToastStack from "@/components/ToastStack";
 import { usePersonState } from "@/lib/usePersonState";
 import { useToasts } from "@/lib/useToasts";
+import { useCardZoom } from "@/lib/useCardZoom";
 import { deckAnalysis, deckCardIds, ownedCount, fmtMoney } from "@/lib/deckAnalysis";
 import { CARDS_BY_ID, costLabel, searchCards } from "@/lib/cards";
 
@@ -39,6 +41,7 @@ export default function DeckDetailPage({ params }) {
   const { state, update, loading, saveStatus, isOwner } = usePersonState(slug, (ok) => {
     showToast(ok ? "✓ Saved" : "Save failed — check your connection", ok ? "good" : "bad");
   });
+  const zoom = useCardZoom();
   const [tab, setTab] = useState("cards");
   const [query, setQuery] = useState("");
 
@@ -113,7 +116,7 @@ export default function DeckDetailPage({ params }) {
   const results = query.trim() ? searchCards(query, 8) : [];
 
   return (
-    <PersonShell slug={slug} saveStatus={saveStatus}>
+    <PersonShell slug={slug} saveStatus={saveStatus} isOwner={isOwner}>
       <div className="page-head">
         <div>
           <h1>{deck.name}</h1>
@@ -153,7 +156,9 @@ export default function DeckDetailPage({ params }) {
                       <tr key={row.id}>
                         <td className="row-title">
                           <div className="card-name-cell">
-                            <CardThumb card={row.card} />
+                            <button type="button" className="thumb-btn" aria-label={`Zoom ${row.card.n}`} onClick={() => zoom.open(row.card)}>
+                              <CardThumb card={row.card} />
+                            </button>
                             <span className="card-name">{row.card.n}</span>
                           </div>
                         </td>
@@ -176,7 +181,7 @@ export default function DeckDetailPage({ params }) {
             <>
               <div className="search-box">
                 <label htmlFor="deck-card-search" className="sr-only">Add a card to this deck</label>
-                <input id="deck-card-search" type="text" placeholder="Add a card to this deck…" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" disabled={!isOwner} />
+                <input id="deck-card-search" type="text" placeholder="Add a card to this deck…" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
               </div>
               {results.length > 0 && (
                 <div style={{ marginTop: 8 }}>
@@ -185,7 +190,9 @@ export default function DeckDetailPage({ params }) {
                     return (
                       <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", border: "1px solid var(--line)", borderRadius: 8, marginBottom: 6, background: "var(--surface)" }}>
                         <div className="card-name-cell">
-                          <CardThumb card={c} />
+                          <button type="button" className="thumb-btn" aria-label={`Zoom ${c.n}`} onClick={() => zoom.open(c)}>
+                            <CardThumb card={c} />
+                          </button>
                           <span className="card-name">{c.n}</span>
                         </div>
                         <button className="btn btn-sm btn-accent" disabled={!isOwner || qty >= 4} onClick={() => addCard(c)}>
@@ -212,7 +219,9 @@ export default function DeckDetailPage({ params }) {
                           <tr key={id}>
                             <td className="row-title">
                               <div className="card-name-cell">
-                                <CardThumb card={c} />
+                                <button type="button" className="thumb-btn" aria-label={`Zoom ${c.n}`} onClick={() => zoom.open(c)}>
+                                  <CardThumb card={c} />
+                                </button>
                                 <span className="card-name">{c.n}</span>
                               </div>
                             </td>
@@ -286,6 +295,7 @@ export default function DeckDetailPage({ params }) {
           </div>
         </div>
       </div>
+      <CardZoomModal card={zoom.card} onClose={zoom.close} />
       <ToastStack toasts={toasts} dismiss={dismiss} />
     </PersonShell>
   );
