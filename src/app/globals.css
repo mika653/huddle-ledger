@@ -72,10 +72,18 @@ input { font-family: var(--font-body); }
   display: flex; flex-direction: column; padding: 24px 16px;
   position: sticky; top: 0; height: 100vh;
 }
+.rail-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .brand { display: flex; align-items: center; gap: 9px; padding: 0 8px 4px; text-decoration: none; }
 .brand-mark { font-size: 22px; line-height: 1; }
 .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: #fff; letter-spacing: 0.2px; }
 .brand-sub { font-size: 11px; color: var(--rail-ink-dim); font-weight: 600; letter-spacing: 0.03em; padding: 2px 8px 20px; }
+
+.burger-btn { display: none; }
+.burger-icon { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 20px; height: 16px; flex: 0 0 auto; }
+.burger-icon span { display: block; height: 2px; width: 100%; background: #fff; border-radius: 2px; transition: transform 0.2s ease, opacity 0.2s ease; }
+.burger-icon.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.burger-icon.open span:nth-child(2) { opacity: 0; }
+.burger-icon.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 nav.rail-nav { display: flex; flex-direction: column; gap: 4px; }
 .rail-link {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px;
@@ -232,12 +240,26 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     width: 100%; flex: 0 0 auto; height: auto; position: sticky; top: 0; z-index: 20;
     flex-direction: row; align-items: center; padding: 12px 14px; gap: 8px;
   }
+  .rail-top-row { width: 100%; }
   .brand { padding: 0; flex: 0 0 auto; }
   .brand-name { font-size: 18px; }
   .brand-sub { display: none; }
-  nav.rail-nav { flex-direction: row; flex: 1 1 auto; overflow-x: auto; gap: 6px; -webkit-overflow-scrolling: touch; }
-  .rail-link { padding: 10px 12px; font-size: 13.5px; white-space: nowrap; }
   .rail-foot { display: none; }
+
+  .burger-btn {
+    display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.14);
+    border: none; border-radius: 10px; padding: 9px 12px; color: #fff; font-weight: 700; font-size: 13.5px;
+  }
+  .burger-current { max-width: 32vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  nav.rail-nav {
+    display: none; flex-direction: column; gap: 4px;
+    position: absolute; top: 100%; left: 0; right: 0; margin-top: 8px; padding: 10px;
+    background: var(--rail-2); border-radius: 0 0 16px 16px; box-shadow: 0 16px 30px var(--shadow);
+    z-index: 25;
+  }
+  nav.rail-nav.menu-open { display: flex; }
+  .rail-link { padding: 13px 14px; font-size: 15px; }
 
   #main { padding: 16px; }
   .page-head { margin-bottom: 16px; }

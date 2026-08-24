@@ -13,10 +13,16 @@ function isMe(slug) {
 export default function PersonShell({ slug, saveStatus, children }) {
   const pathname = usePathname();
   const [viewingSomeoneElse, setViewingSomeoneElse] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     setViewingSomeoneElse(!isMe(slug));
   }, [slug]);
+
+  // Close the mobile menu whenever the route actually changes.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   const links = [
     { href: `/p/${slug}`, label: "Collection", sw: "var(--c-blue)", exact: true },
@@ -24,15 +30,30 @@ export default function PersonShell({ slug, saveStatus, children }) {
     { href: `/p/${slug}/shopping`, label: "Shopping list", sw: "var(--accent)" },
   ];
 
+  const activeLink = links.find((l) => (l.exact ? pathname === l.href : pathname.startsWith(l.href)));
+
   return (
     <div id="shell">
       <div id="rail">
-        <a className="brand" href="/">
-          <span className="brand-mark">🐧</span>
-          <span className="brand-name">Huddle Ledger</span>
-        </a>
+        <div className="rail-top-row">
+          <a className="brand" href="/">
+            <span className="brand-mark">🐧</span>
+            <span className="brand-name">Huddle Ledger</span>
+          </a>
+          <button
+            className="burger-btn"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span className="burger-current">{activeLink?.label || "Menu"}</span>
+            <span className={"burger-icon" + (menuOpen ? " open" : "")}>
+              <span /><span /><span />
+            </span>
+          </button>
+        </div>
         <div className="brand-sub">{slug}&apos;s collection</div>
-        <nav className="rail-nav">
+        <nav className={"rail-nav" + (menuOpen ? " menu-open" : "")}>
           {links.map((l) => {
             const active = l.exact ? pathname === l.href : pathname.startsWith(l.href);
             return (
