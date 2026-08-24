@@ -3,7 +3,9 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import PersonShell from "@/components/PersonShell";
+import ToastStack from "@/components/ToastStack";
 import { usePersonState } from "@/lib/usePersonState";
+import { useToasts } from "@/lib/useToasts";
 import { deckAnalysis, fmtMoney } from "@/lib/deckAnalysis";
 
 function uid() {
@@ -13,7 +15,10 @@ function uid() {
 export default function DecksPage({ params }) {
   const { slug } = use(params);
   const router = useRouter();
-  const { state, update, saveStatus } = usePersonState(slug);
+  const { toasts, showToast, dismiss } = useToasts();
+  const { state, update, saveStatus, isOwner } = usePersonState(slug, (ok) => {
+    if (!ok) showToast("Save failed — check your connection", "bad");
+  });
   const [showNew, setShowNew] = useState(false);
   const [name, setName] = useState("");
 
@@ -28,13 +33,13 @@ export default function DecksPage({ params }) {
   }
 
   return (
-    <PersonShell slug={slug} saveStatus={saveStatus}>
+    <PersonShell slug={slug} saveStatus={saveStatus} isOwner={isOwner}>
       <div className="page-head">
         <div>
           <h1>Decks</h1>
           <p>Track every list you&apos;re testing and see at a glance how close each is to buildable.</p>
         </div>
-        <button className="btn btn-accent" onClick={() => setShowNew(true)}>+ New deck</button>
+        <button className="btn btn-accent" disabled={!isOwner} onClick={() => setShowNew(true)}>+ New deck</button>
       </div>
 
       {state.decks.length === 0 ? (
@@ -88,6 +93,7 @@ export default function DecksPage({ params }) {
           </div>
         </div>
       )}
+      <ToastStack toasts={toasts} dismiss={dismiss} />
     </PersonShell>
   );
 }

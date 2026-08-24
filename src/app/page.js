@@ -21,6 +21,13 @@ export default function Landing() {
   function go() {
     const slug = toSlug(name);
     if (!slug) return;
+    const existing = (people || []).find((p) => p.slug === slug);
+    if (existing && existing.displayName.trim().toLowerCase() !== name.trim().toLowerCase()) {
+      const proceed = confirm(
+        `"${existing.displayName}" is already using this page. If that's not you, pick a slightly different name so you don't end up viewing their collection instead of starting your own.\n\nContinue to ${existing.displayName}'s page anyway?`
+      );
+      if (!proceed) return;
+    }
     localStorage.setItem("huddle-ledger:me", name.trim());
     router.push(`/p/${slug}`);
   }
@@ -31,7 +38,9 @@ export default function Landing() {
         <div className="landing-emoji">🐧</div>
         <h1>Huddle Ledger</h1>
         <p>Track your Vibes TCG collection, build decks, and see what your friends have spare.</p>
+        <label htmlFor="landing-name" className="sr-only">What&apos;s your name?</label>
         <input
+          id="landing-name"
           type="text"
           placeholder="What's your name?"
           value={name}

@@ -35,8 +35,8 @@ function CurveChart({ curve }) {
 export default function DeckDetailPage({ params }) {
   const { slug, deckId } = use(params);
   const router = useRouter();
-  const { toasts, showToast } = useToasts();
-  const { state, update, loading, saveStatus } = usePersonState(slug, (ok) => {
+  const { toasts, showToast, dismiss } = useToasts();
+  const { state, update, loading, saveStatus, isOwner } = usePersonState(slug, (ok) => {
     showToast(ok ? "✓ Saved" : "Save failed — check your connection", ok ? "good" : "bad");
   });
   const [tab, setTab] = useState("cards");
@@ -93,14 +93,14 @@ export default function DeckDetailPage({ params }) {
 
   if (loading) {
     return (
-      <PersonShell slug={slug} saveStatus={saveStatus}>
+      <PersonShell slug={slug} saveStatus={saveStatus} isOwner={isOwner}>
         <div className="empty-state"><h3>Loading…</h3></div>
       </PersonShell>
     );
   }
   if (!deck) {
     return (
-      <PersonShell slug={slug} saveStatus={saveStatus}>
+      <PersonShell slug={slug} saveStatus={saveStatus} isOwner={isOwner}>
         <div className="empty-state">
           <h3>Deck not found</h3>
           <p><a href={`/p/${slug}/decks`}>Back to decks</a></p>
@@ -127,8 +127,8 @@ export default function DeckDetailPage({ params }) {
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn btn-ghost" onClick={rename}>Rename</button>
-          <button className="btn btn-ghost" onClick={remove}>Delete</button>
+          <button className="btn btn-ghost" disabled={!isOwner} onClick={rename}>Rename</button>
+          <button className="btn btn-ghost" disabled={!isOwner} onClick={remove}>Delete</button>
         </div>
       </div>
 
@@ -157,13 +157,15 @@ export default function DeckDetailPage({ params }) {
                             <span className="card-name">{row.card.n}</span>
                           </div>
                         </td>
-                        <td className="num row-stat" data-label="Own / need">{row.owned} / {row.qty}</td>
-                        <td className="num row-stat" data-label="Short" style={{ color: "var(--bad)", fontWeight: 700 }}>{row.needN}</td>
+                        <td className="num row-stat" data-label="Own / need" aria-label={`Own ${row.owned} of ${row.qty} needed`}>{row.owned} / {row.qty}</td>
+                        <td className="num row-stat" data-label="Short" aria-label={`Short: ${row.needN}`} style={{ color: "var(--bad)", fontWeight: 700 }}>{row.needN}</td>
                         <td className="num row-stat" data-label="Price ea.">
                           <input className="price-input" type="number" min="0" step="1" defaultValue={row.price || ""} placeholder="0"
+                            aria-label={`Price each for ${row.card.n}`}
+                            disabled={!isOwner}
                             onBlur={(e) => setPrice(row.id, e.target.value)} />
                         </td>
-                        <td className="num row-stat" data-label="Subtotal">{row.price ? fmtMoney(row.price * row.needN) : "—"}</td>
+                        <td className="num row-stat" data-label="Subtotal" aria-label={`Subtotal: ${row.price ? fmtMoney(row.price * row.needN) : "none"}`}>{row.price ? fmtMoney(row.price * row.needN) : "—"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -173,7 +175,8 @@ export default function DeckDetailPage({ params }) {
           ) : (
             <>
               <div className="search-box">
-                <input type="text" placeholder="Add a card to this deck…" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
+                <label htmlFor="deck-card-search" className="sr-only">Add a card to this deck</label>
+                <input id="deck-card-search" type="text" placeholder="Add a card to this deck…" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" disabled={!isOwner} />
               </div>
               {results.length > 0 && (
                 <div style={{ marginTop: 8 }}>
@@ -185,7 +188,7 @@ export default function DeckDetailPage({ params }) {
                           <CardThumb card={c} />
                           <span className="card-name">{c.n}</span>
                         </div>
-                        <button className="btn btn-sm btn-accent" disabled={qty >= 4} onClick={() => addCard(c)}>
+                        <button className="btn btn-sm btn-accent" disabled={!isOwner || qty >= 4} onClick={() => addCard(c)}>
                           {qty ? `Add another (${qty}/4)` : "Add"}
                         </button>
                       </div>
@@ -213,13 +216,13 @@ export default function DeckDetailPage({ params }) {
                                 <span className="card-name">{c.n}</span>
                               </div>
                             </td>
-                            <td className="num row-stat" data-label="Cost">{costLabel(c.c)}</td>
-                            <td className="num row-stat" data-label="Own">{owned}</td>
+                            <td className="num row-stat" data-label="Cost" aria-label={`Cost: ${costLabel(c.c)}`}>{costLabel(c.c)}</td>
+                            <td className="num row-stat" data-label="Own" aria-label={`Own: ${owned}`}>{owned}</td>
                             <td className="num row-stat" data-label="In deck">
                               <div className="stepper">
-                                <button onClick={() => setQty(id, qty - 1)}>−</button>
+                                <button aria-label={`Remove one ${c.n} from deck`} disabled={!isOwner} onClick={() => setQty(id, qty - 1)}>−</button>
                                 <span className="count" style={short ? { color: "var(--bad)" } : undefined}>{qty}</span>
-                                <button disabled={qty >= 4} onClick={() => setQty(id, qty + 1)}>+</button>
+                                <button aria-label={`Add one ${c.n} to deck`} disabled={!isOwner || qty >= 4} onClick={() => setQty(id, qty + 1)}>+</button>
                               </div>
                             </td>
                           </tr>
@@ -240,6 +243,16 @@ export default function DeckDetailPage({ params }) {
             <div className="kv-row">
               <span className="kv-label">Over 4 copies</span>
               <span className="kv-value">{a.overCap.length ? <span className="chip chip-bad">{a.overCap.length}</span> : <span className="chip chip-good">None</span>}</span>
+            </div>
+            <div className="kv-row">
+              <span className="kv-label">Tournament-banned</span>
+              <span className="kv-value">
+                {a.bannedInDeck.length ? (
+                  <span className="chip chip-bad" title={a.bannedInDeck.join(", ")}>{a.bannedInDeck.length} card{a.bannedInDeck.length === 1 ? "" : "s"}</span>
+                ) : (
+                  <span className="chip chip-good">None</span>
+                )}
+              </span>
             </div>
             <div className="kv-row">
               <span className="kv-label">Pudge coverage</span>
@@ -273,7 +286,7 @@ export default function DeckDetailPage({ params }) {
           </div>
         </div>
       </div>
-      <ToastStack toasts={toasts} />
+      <ToastStack toasts={toasts} dismiss={dismiss} />
     </PersonShell>
   );
 }

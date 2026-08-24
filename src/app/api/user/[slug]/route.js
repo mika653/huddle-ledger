@@ -10,7 +10,8 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: "invalid slug" }, { status: 400 });
   }
   const data = await kvGet(`user:${slug}`);
-  return NextResponse.json(data || { ...EMPTY_STATE, displayName: slug });
+  const secret = await kvGet(`secret:${slug}`);
+  return NextResponse.json({ ...(data || { ...EMPTY_STATE, displayName: slug }), hasOwner: !!secret });
 }
 
 export async function PUT(request, { params }) {
@@ -18,6 +19,17 @@ export async function PUT(request, { params }) {
   if (!isValidSlug(slug)) {
     return NextResponse.json({ error: "invalid slug" }, { status: 400 });
   }
+  const providedSecret = request.headers.get("x-edit-secret");
+  const storedSecret = await kvGet(`secret:${slug}`);
+  if (storedSecret) {
+    if (providedSecret !== storedSecret) {
+      return NextResponse.json({ error: "not the owner of this page" }, { status: 403 });
+    }
+  } else if (providedSecret) {
+    // First successful write for this slug claims it.
+    await kvSet(`secret:${slug}`, providedSecret);
+  }
+
   const body = await request.json();
   const state = {
     collection: body.collection || {},
@@ -35,7 +47,13 @@ export async function DELETE(request, { params }) {
   if (!isValidSlug(slug)) {
     return NextResponse.json({ error: "invalid slug" }, { status: 400 });
   }
+  const providedSecret = request.headers.get("x-edit-secret");
+  const storedSecret = await kvGet(`secret:${slug}`);
+  if (storedSecret && providedSecret !== storedSecret) {
+    return NextResponse.json({ error: "not the owner of this page" }, { status: 403 });
+  }
   await kvDel(`user:${slug}`);
+  await kvDel(`secret:${slug}`);
   await kvSRem("directory", slug);
   return NextResponse.json({ ok: true });
 }

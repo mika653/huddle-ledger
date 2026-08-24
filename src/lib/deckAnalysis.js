@@ -1,6 +1,10 @@
 import { CARDS_BY_ID } from "@/lib/cards";
 import { totalOwned } from "@/lib/finishes";
 
+// Cards banned from tournament play — flagged in the legality panel even
+// though they're otherwise legal to log and own.
+export const BANNED_IDS = ["PackAttack", "Sheeeesh"];
+
 // Deck legality/have-need doesn't care which finish a copy is — a foil
 // counts toward your playset the same as a regular copy.
 export function ownedCount(collection, id) {
@@ -21,6 +25,7 @@ export function deckCardIds(deck) {
 export function deckAnalysis(deck, collection, prices) {
   const ids = deckCardIds(deck);
   const totalCards = deckTotal(deck);
+  const bannedInDeck = ids.filter((id) => BANNED_IDS.includes(id)).map((id) => CARDS_BY_ID[id]?.n).filter(Boolean);
   const overCap = [];
   const fishCurve = {};
   const neededColors = {};
@@ -66,6 +71,7 @@ export function deckAnalysis(deck, collection, prices) {
     totalCards,
     isLegalCount: totalCards === 52,
     overCap,
+    bannedInDeck,
     fishCurve,
     missingColors,
     have,

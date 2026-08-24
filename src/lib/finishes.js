@@ -18,3 +18,10 @@ export function totalOwned(entry) {
   const e = normalizeEntry(entry);
   return e.regular + e.foil + e.specialFoil;
 }
+
+// Spare copies for trade, counted per finish (not pooled) — someone shopping
+// for a foil doesn't care that you have two extra regulars.
+export function spareCount(entry) {
+  const e = normalizeEntry(entry);
+  return FINISHES.reduce((sum, f) => sum + Math.max(0, e[f.key] - 4), 0);
+}

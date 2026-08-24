@@ -10,8 +10,8 @@ import { shoppingListAcrossDecks, fmtMoney } from "@/lib/deckAnalysis";
 
 export default function ShoppingPage({ params }) {
   const { slug } = use(params);
-  const { toasts, showToast } = useToasts();
-  const { state, update, saveStatus } = usePersonState(slug, (ok) => {
+  const { toasts, showToast, dismiss } = useToasts();
+  const { state, update, saveStatus, isOwner } = usePersonState(slug, (ok) => {
     showToast(ok ? "✓ Saved" : "Save failed — check your connection", ok ? "good" : "bad");
   });
 
@@ -32,7 +32,7 @@ export default function ShoppingPage({ params }) {
   }
 
   return (
-    <PersonShell slug={slug} saveStatus={saveStatus}>
+    <PersonShell slug={slug} saveStatus={saveStatus} isOwner={isOwner}>
       <div className="page-head">
         <div>
           <h1>Shopping list</h1>
@@ -67,12 +67,14 @@ export default function ShoppingPage({ params }) {
                           </div>
                         </div>
                       </td>
-                      <td className="num row-stat" data-label="Need" style={{ fontWeight: 700 }}>{e.need}</td>
+                      <td className="num row-stat" data-label="Need" aria-label={`Need: ${e.need}`} style={{ fontWeight: 700 }}>{e.need}</td>
                       <td className="num row-stat" data-label="Price ea.">
                         <input className="price-input" type="number" min="0" step="1" defaultValue={pr || ""} placeholder="0"
+                          aria-label={`Price each for ${e.card.n}`}
+                          disabled={!isOwner}
                           onBlur={(ev) => setPrice(id, ev.target.value)} />
                       </td>
-                      <td className="num row-stat" data-label="Subtotal">{pr ? fmtMoney(pr * e.need) : "—"}</td>
+                      <td className="num row-stat" data-label="Subtotal" aria-label={`Subtotal: ${pr ? fmtMoney(pr * e.need) : "none"}`}>{pr ? fmtMoney(pr * e.need) : "—"}</td>
                     </tr>
                   );
                 })}
@@ -88,7 +90,7 @@ export default function ShoppingPage({ params }) {
           </div>
         </>
       )}
-      <ToastStack toasts={toasts} />
+      <ToastStack toasts={toasts} dismiss={dismiss} />
     </PersonShell>
   );
 }

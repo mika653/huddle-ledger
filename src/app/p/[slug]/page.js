@@ -7,22 +7,24 @@ import ToastStack from "@/components/ToastStack";
 import { usePersonState } from "@/lib/usePersonState";
 import { useToasts } from "@/lib/useToasts";
 import { CARDS, costLabel, searchCards } from "@/lib/cards";
-import { FINISHES, normalizeEntry, totalOwned } from "@/lib/finishes";
+import { FINISHES, normalizeEntry, totalOwned, spareCount } from "@/lib/finishes";
 
-function FinishStepper({ value, onChange }) {
+function FinishStepper({ value, onChange, disabled, label, cardName, finishKey }) {
   return (
-    <div className="stepper stepper-sm">
-      <button disabled={value <= 0} onClick={() => onChange(value - 1)}>−</button>
+    <div className={"stepper stepper-sm finish-" + finishKey}>
+      <button aria-label={`Remove one ${label} ${cardName}`} disabled={disabled || value <= 0} onClick={() => onChange(value - 1)}>−</button>
       <span className="count">{value}</span>
-      <button disabled={value >= 99} onClick={() => onChange(value + 1)}>+</button>
+      <button aria-label={`Add one ${label} ${cardName}`} disabled={disabled || value >= 99} onClick={() => onChange(value + 1)}>+</button>
     </div>
   );
 }
 
+const COLSPAN = 3 + FINISHES.length;
+
 export default function CollectionPage({ params }) {
   const { slug } = use(params);
-  const { toasts, showToast } = useToasts();
-  const { state, update, loading, saveStatus } = usePersonState(slug, (ok) => {
+  const { toasts, showToast, dismiss } = useToasts();
+  const { state, update, loading, saveStatus, isOwner } = usePersonState(slug, (ok) => {
     showToast(ok ? "✓ Saved" : "Save failed — check your connection", ok ? "good" : "bad");
   });
   const [query, setQuery] = useState("");
@@ -47,15 +49,16 @@ export default function CollectionPage({ params }) {
   const uniqueOwned = Object.keys(state.collection).length;
 
   return (
-    <PersonShell slug={slug} saveStatus={saveStatus}>
+    <PersonShell slug={slug} saveStatus={saveStatus} isOwner={isOwner}>
       <div className="page-head">
         <div>
           <h1>Collection</h1>
-          <p>Search the full {CARDS.length}-card pool and log Regular, Foil, and Special Foil counts separately. Own more than a playset in total? It&apos;ll show as spare.</p>
+          <p>Search the full {CARDS.length}-card pool and log Regular, Foil, and Special Foil counts separately. Own more than a playset of any one finish? It&apos;ll show as spare.</p>
         </div>
       </div>
       <div className="search-box">
-        <input type="text" placeholder="Search a card name…" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
+        <label htmlFor="card-search" className="sr-only">Search a card name</label>
+        <input id="card-search" type="text" placeholder="Search a card name…" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
       </div>
       <div style={{ marginTop: 16 }} className="table-wrap">
         <table className="responsive-table">
@@ -72,7 +75,7 @@ export default function CollectionPage({ params }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={COLSPAN}>
                   <div className="empty-state">
                     <h3>Loading…</h3>
                   </div>
@@ -80,7 +83,7 @@ export default function CollectionPage({ params }) {
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={COLSPAN}>
                   <div className="empty-state">
                     <h3>{query ? "No matches" : "Nothing logged yet"}</h3>
                     <p>{query ? "Try a different search term." : "Search above and start setting counts — owned cards will show here."}</p>
@@ -91,6 +94,7 @@ export default function CollectionPage({ params }) {
               rows.map((c) => {
                 const entry = normalizeEntry(state.collection[c.id]);
                 const total = totalOwned(entry);
+                const spare = spareCount(entry);
                 return (
                   <tr key={c.id}>
                     <td className="row-title">
@@ -102,17 +106,24 @@ export default function CollectionPage({ params }) {
                         </div>
                       </div>
                     </td>
-                    <td className="num row-stat" data-label="Cost">{costLabel(c.c)}</td>
+                    <td className="num row-stat" data-label="Cost" aria-label={`Cost: ${costLabel(c.c)}`}>{costLabel(c.c)}</td>
                     {FINISHES.map((f) => (
                       <td className="num row-stat" data-label={f.label} key={f.key}>
-                        <FinishStepper value={entry[f.key]} onChange={(n) => setFinish(c.id, f.key, n)} />
+                        <FinishStepper
+                          value={entry[f.key]}
+                          onChange={(n) => setFinish(c.id, f.key, n)}
+                          disabled={!isOwner}
+                          label={f.label}
+                          cardName={c.n}
+                          finishKey={f.key}
+                        />
                       </td>
                     ))}
-                    <td className="num row-stat" data-label="Total">
+                    <td className="num row-stat" data-label="Total" aria-label={`Total owned: ${total}${spare > 0 ? `, ${spare} spare` : ""}`}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
-                        {total > 4 && (
-                          <span className="chip chip-good" title="More than a playset, across all finishes — available to trade or sell">
-                            {total - 4} spare
+                        {spare > 0 && (
+                          <span className="chip chip-good" title="More than a playset of at least one finish — available to trade or sell">
+                            {spare} spare
                           </span>
                         )}
                         <span style={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{total}</span>
@@ -126,7 +137,7 @@ export default function CollectionPage({ params }) {
         </table>
       </div>
       <p style={{ marginTop: 10, color: "var(--ink-faint)", fontSize: 12 }}>{uniqueOwned} unique cards logged so far.</p>
-      <ToastStack toasts={toasts} />
+      <ToastStack toasts={toasts} dismiss={dismiss} />
     </PersonShell>
   );
 }
